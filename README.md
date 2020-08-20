@@ -2,15 +2,17 @@
 
 A repository for [orbs](https://circleci.com/orbs/) managed by Avvo for using in CircleCI.
 
+**This is a public repository. See "Considerations about security" below.**
+
 ## Getting started
 
-Familiarize yourself with [orbs from a developer perspective](https://circleci.com/docs/2.0/orb-intro/).
+1. Familiarize yourself with [orbs from a developer perspective](https://circleci.com/docs/2.0/orb-intro/).
 
-1. Get access to the Avvo Github organization.
+2. Get access to the Avvo Github organization.
 
-2. Install the [CircleCI local CLI](https://circleci.com/docs/2.0/local-cli/) and run `circleci setup`
+3. Install the [CircleCI local CLI](https://circleci.com/docs/2.0/local-cli/) and run `circleci setup`
 
-3. We've already run this command, **so you don't need to**: `circleci namespace create avvo github avvo`
+We've already run this command, **so you don't need to**: `circleci namespace create avvo github avvo`
 
 ## Creating a new orb
 
@@ -51,4 +53,10 @@ This will promote your `dev:initial` version to the next available patch level.
 
 This is much the same as creating a new orb, but you can skip the `circleci orb create` step. Also, you'll probably use a different tag than `dev:initial` because, well, it's not the initial development. Be creative. I believe in you.
 
+## Considerations about security
 
+CircleCI orbs are public, which is why this repo is public. *Don't commit code here that exposes Avvo secrets.*
+
+If your code requires sensitive data such as a Github or package repository access credential, implement the access to that data using environment variables in your orb code. You can then configure the environment variables to passed into your CircleCI build configuration via [contexts](https://circleci.com/docs/2.0/contexts/) or [project-level environment variables](https://circleci.com/docs/2.0/env-vars/#setting-an-environment-variable-in-a-project).
+
+See [the CircleCI docs on environment variables](https://circleci.com/docs/2.0/env-vars/) to learn more about how environment variables are used and managed in CircleCI.
