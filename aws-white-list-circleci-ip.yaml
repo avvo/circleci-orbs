@@ -1,0 +1,132 @@
+# This code is licensed from CircleCI to the user under the MIT license. See
+# https://circleci.com/orbs/registry/licensing for details.
+version: 2.1
+
+description: |
+  Add a custom script that gets the public ip address of the current box 
+  and calls the AWS CLI to add an inbound security rule on the fly. 
+  Then remove that rule at the end of the script.
+
+  This version is based on the configure/aws-white-list-circleci-ip@1.0.1
+  orb with changes/bug fixes.
+
+  * Support for specifying $IP environment variable. (Useful when the
+    IP you are registering is a CircleCI remote docker engine, not
+    the CircleCI container on which the orb is invoked.)
+  * Uses ifconfig.me rather than checkip.amazon.com to determine default
+    value of IP address. Just in case the CircleCI environment runs
+    somewhere other than Amazon.
+
+examples:
+  basic_commands:
+    description: "Examples uses aws-white-list-circleci-ip commands"
+    usage:
+      version: 2.1
+      orbs:
+        aws-white-list-circleci-ip: avvo/aws-white-list-circleci-ip@0.0.1
+      jobs:
+        build:
+          docker:
+            - image: circleci/python:2.7
+          steps:
+            - checkout
+            - aws-white-list-circleci-ip/add
+            - aws-white-list-circleci-ip/remove
+
+orbs:
+  aws-cli: circleci/aws-cli@0.1.13
+
+commands: 
+      add:
+        description: This command will add a rule in the SG of the Kubernetes API to allow the ingress of the CircleCI Machine 
+        parameters:
+          description:
+            description: Description to identify the rule.
+            type: string
+            default: CircleCI
+          port:
+            description: Port to open for the inbound rule.
+            type: integer
+            default: 443
+          mask:
+            description: Mask to use for the ip address.
+            type: integer
+            default: 32
+          tag-key:
+            description: This key should exist in the SG where we are going to add the rules.
+            type: string
+            default: developers
+          tag-value:
+            description: This value should exist in the tag of the SG where we are going to add the rules.
+            type: string
+            default: bastionaccess
+        steps: 
+          - aws-cli/install
+          - run:
+              name: AWS whitelist add CircleCI IP
+              command: |
+                  
+                  # Get the public ip address
+                  LATEST_IP=$(wget -qO- ifconfig.me)
+                  MY_IP="${IP-$LATEST_IP}"
+                  if [[ "${MY_IP}" == "" ]]; then
+                    echo "Could not find your public IP"
+                    exit 1
+                  fi
+
+                  PORT="${PORT-<< parameters.port>>}"
+
+                  GROUPID=$(aws ec2 describe-security-groups --query 'SecurityGroups[].[Tags[?Key==`<< parameters.tag-key >>`] | [0].Value, GroupId]' --output table | grep << parameters.tag-value >> | awk '{print $4}')
+                  [[ -n "${GROUPID}" ]] || (echo "Could not determine Security Group ID" && exit 0);
+                                                      
+                  # Adding Rule SSH to Your Security Group
+                  echo Allowing << parameters.description >> to access port $PORT from IP $MY_IP to the security group $GROUPID
+                  aws ec2 authorize-security-group-ingress --group-id $GROUPID --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$PORT', "ToPort": '$PORT', "IpRanges": [{"CidrIp": "'$MY_IP/<< parameters.mask >>'", "Description": "'<< parameters.description >>'"}]}]'                 
+
+      
+      remove: 
+        description: This command will remove the rule added in the SG from the Kubernetes API of the CircleCI machine
+        parameters:
+          description:
+            description: Description to identify the rule.
+            type: string
+            default: CircleCI
+          port:
+            description: Port to open for the inbound rule.
+            type: integer
+            default: 443
+          mask:
+            description: Mask to use for the ip address.
+            type: integer
+            default: 32
+          tag-key:
+            description: This key should exist in the SG where we are going to add the rules.
+            type: string
+            default: developers
+          tag-value:
+            description: This value should exist in the tag of the SG where we are going to add the rules.
+            type: string
+            default: bastionaccess
+        steps: 
+          - aws-cli/install
+          - run:
+              name: AWS whitelist remove CircleCI IP
+              command: |
+
+                  # Get the public ip address
+                  LATEST_IP=$(wget -qO- ifconfig.me)
+                  MY_IP=${IP-$LATEST_IP}
+                  [[ -n "$MY_IP" ]] || (echo "Could not find your public IP" && exit 1);
+
+                  PORT="${PORT-<< parameters.port>>}"
+                  
+                  GROUPID=$(aws ec2 describe-security-groups --query 'SecurityGroups[].[Tags[?Key==`<< parameters.tag-key >>`] | [0].Value, GroupId]' --output table | grep << parameters.tag-value >> | awk '{print $4}');
+                  [[ -n "$GROUPID" ]] || (echo "Could not determine Security Group ID" && exit 1);
+
+
+                  echo "Removing << parameters.description >> access to port $PORT from IP $MY_IP to the security group $GROUPID"
+
+                  # Delete IP rules matching port
+                  aws ec2 revoke-security-group-ingress --group-id $GROUPID --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$PORT', "ToPort": '$PORT', "IpRanges": [{"CidrIp": "'$MY_IP/<< parameters.mask >>'", "Description": "'<< parameters.description >>'"}]}]'
+              when: always
+
