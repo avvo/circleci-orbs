@@ -1,0 +1,3 @@
+description: Cleans up after building and pushing gems
+steps:
+  - teardown-generic-environment

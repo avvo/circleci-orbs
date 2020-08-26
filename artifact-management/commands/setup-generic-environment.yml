@@ -1,0 +1,9 @@
+description: Common setup tasks
+steps:
+  - run:
+      name: "Set AVVO_BUILD_TAG environment variable"
+      command: echo "export AVVO_BUILD_TAG=avvo_$(echo $CIRCLE_PROJECT_REPONAME | sed 's/-/_/g;')_${CIRCLE_BUILD_NUM}_$(eval date +%s)" >> $BASH_ENV
+  - aws-white-list-circleci-ip/add:
+      tag-key: Role
+      tag-value: avvo_repo_ingress_control
+      description: "${AVVO_BUILD_TAG}"

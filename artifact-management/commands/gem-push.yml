@@ -1,0 +1,27 @@
+description: Push the built gem to its destination repository
+parameters:
+  gem_build_dir:
+    description: The directory in which the gem build and push should run
+    type: string
+    default: .
+  gem_repo_host:
+    description: The host to which built packages should be pushed
+    type: env_var_name
+    default: AVVO_GEM_REPO_HOST
+  packagecloud_gem_repo:
+    description: The Packagecloud repo in which gems will be stored
+    type: env_var_name
+    default: PACKAGECLOUD_GEM_REPO
+steps:
+  - run:
+      name: "Push gem(s) to Packagecloud"
+      command: |-
+        if [ -n "$PACKAGECLOUD_GEM_REPO" ]; then
+          cd <<parameters.gem_build_dir>>
+          package_cloud push $PACKAGECLOUD_GEM_REPO $(ls *.gem)
+        else
+          echo '$PACKAGECLOUD_GEM_REPO not set, not pushing built gem(s) to package_cloud'
+        fi
+  - run:
+      name: "Push gem(s) to private gem repo"
+      command: cd <<parameters.gem_build_dir>> && gem push "$(ls *.gem)" --host https://$AVVO_GEM_REPO_HOST -v

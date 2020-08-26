@@ -1,0 +1,43 @@
+description: This command will remove the rule added in the SG from the Kubernetes API of the CircleCI machine
+parameters:
+  description:
+    description: Description to identify the rule.
+    type: string
+    default: CircleCI
+  port:
+    description: Port to open for the inbound rule.
+    type: integer
+    default: 443
+  mask:
+    description: Mask to use for the ip address.
+    type: integer
+    default: 32
+  tag-key:
+    description: This key should exist in the SG where we are going to add the rules.
+    type: string
+    default: developers
+  tag-value:
+    description: This value should exist in the tag of the SG where we are going to add the rules.
+    type: string
+    default: bastionaccess
+steps: 
+  - aws-cli/install
+  - run:
+      name: AWS whitelist remove CircleCI IP
+      when: always
+      command: |-
+          # Get the public ip address
+          LATEST_IP=$(wget -qO- ifconfig.me)
+          MY_IP=${IP-$LATEST_IP}
+          [[ -n "$MY_IP" ]] || (echo "Could not find your public IP" && exit 1);
+
+          PORT="${PORT-<< parameters.port>>}"
+          
+          GROUPID=$(aws ec2 describe-security-groups --query 'SecurityGroups[].[Tags[?Key==`<< parameters.tag-key >>`] | [0].Value, GroupId]' --output table | grep << parameters.tag-value >> | awk '{print $4}');
+          [[ -n "$GROUPID" ]] || (echo "Could not determine Security Group ID" && exit 1);
+
+
+          echo "Removing << parameters.description >> access to port $PORT from IP $MY_IP to the security group $GROUPID"
+
+          # Delete IP rules matching port
+          aws ec2 revoke-security-group-ingress --group-id $GROUPID --ip-permissions '[{"IpProtocol": "tcp", "FromPort": '$PORT', "ToPort": '$PORT', "IpRanges": [{"CidrIp": "'$MY_IP/<< parameters.mask >>'", "Description": "'<< parameters.description >>'"}]}]'
