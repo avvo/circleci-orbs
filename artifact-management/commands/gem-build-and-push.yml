@@ -1,0 +1,29 @@
+description: Builds and pushes a gem to one or more gem repositories
+parameters:
+  gem_build_dir:
+    description: The directory in which the gem build and push should run
+    type: string
+    default: .
+  packagecloud_read_token:
+    description: The token to be used when fetching packages from Packagecloud
+    type: env_var_name
+    default: PACKAGECLOUD_READ_TOKEN
+  packagecloud_gem_repo:
+    description: The Packagecloud repo in which gems will be stored
+    type: env_var_name
+    default: PACKAGECLOUD_GEM_REPO
+  gem_repo_host:
+    description: The host to which built packages should be pushed
+    type: env_var_name
+    default: AVVO_GEM_REPO_HOST
+  gem_repo_key:
+    description: The :rubygems_api_key used to access the gem repository
+    type: env_var_name
+    default: AVVO_GEM_REPO_TOKEN
+steps:
+  - setup-gem-environment
+  - gem-build:
+      gem_build_dir: <<parameters.gem_build_dir>>
+  - gem-push:
+      gem_build_dir: <<parameters.gem_build_dir>>
+  - teardown-gem-environment

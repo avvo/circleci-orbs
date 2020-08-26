@@ -1,0 +1,6 @@
+description: Common teardown tasks
+steps:
+  - aws-white-list-circleci-ip/remove:
+      tag-key: Role
+      tag-value: avvo_repo_ingress_control
+      description: "${AVVO_BUILD_TAG}"

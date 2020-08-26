@@ -22,10 +22,16 @@ We've already run this command, **so you don't need to**: `circleci namespace cr
 circleci orb create avvo/my-new-orb
 ```
 
-2. Cut a new branch of this repo, and in it author a new orb in a file called `my-new-orb.yaml`. Validate it like this:
+2. Cut a new branch of this repo, and in it author a new orb in a file called `my-new-orb.yaml`. Validate the orb like this:
 
 ```
 circleci orb validate my-new-orb.yaml
+```
+
+Alternatively, create a [packable directory](https://circleci.com/docs/2.0/local-cli/#packing-a-config) called `my-new-orb`. Validate the orb like this:
+
+```
+circleci config pack my-new-orb | circleci orb validate -
 ```
 
 3. Assuming you've got no errors, publish a first version of your orb to CircleCI:
@@ -34,7 +40,13 @@ circleci orb validate my-new-orb.yaml
 circleci orb publish my-new-orb.yaml avvo/my-new-orb@dev:initial
 ```
 
-4. Write some CircleCI configs to test out your new orb on CircleCI. Keep running `circleci orb publish my-new-orb.yaml avvo/my-new-orb@dev:initial` while you iterate. When you're happy with your changes, do the following:
+If you're using a packable directory, the syntax is:
+
+```
+circleci orb pack my-new-orb | circleci orb publish - avvo/my-new-orb@dev:initial
+```
+
+4. Write some CircleCI configs to test out your new orb on CircleCI. Keep running `circleci orb publish ...` while you iterate. When you're happy with your changes, do the following:
 
 * Add your orb to your branch
 * Push to Github
@@ -48,6 +60,8 @@ circleci orb publish promote avvo/my-new-orb@dev:initial patch
 ```
 
 This will promote your `dev:initial` version to the next available patch level.
+
+(Note that the command is the same for packable directories, because it promotes a previously-published version rather than reading a new orb configuration from file/stdin.)
 
 ## Editing existing orbs
 

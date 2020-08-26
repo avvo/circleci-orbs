@@ -1,0 +1,37 @@
+# This code is licensed from CircleCI to the user under the MIT license. See
+# https://circleci.com/orbs/registry/licensing for details.
+version: 2.1
+
+description: |
+  Add a custom script that gets the public ip address of the current box 
+  and calls the AWS CLI to add an inbound security rule on the fly. 
+  Then remove that rule at the end of the script.
+
+  This version is based on the configure/aws-white-list-circleci-ip@1.0.1
+  orb with changes/bug fixes.
+
+  * Support for specifying $IP environment variable. (Useful when the
+    IP you are registering is a CircleCI remote docker engine, not
+    the CircleCI container on which the orb is invoked.)
+  * Uses ifconfig.me rather than checkip.amazon.com to determine default
+    value of IP address. Just in case the CircleCI environment runs
+    somewhere other than Amazon.
+
+examples:
+  basic_commands:
+    description: "Examples uses aws-white-list-circleci-ip commands"
+    usage:
+      version: 2.1
+      orbs:
+        aws-white-list-circleci-ip: avvo/aws-white-list-circleci-ip@0.0.2
+      jobs:
+        build:
+          docker:
+            - image: circleci/python:2.7
+          steps:
+            - checkout
+            - aws-white-list-circleci-ip/add
+            - aws-white-list-circleci-ip/remove
+
+orbs:
+  aws-cli: circleci/aws-cli@0.1.13

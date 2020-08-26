@@ -1,0 +1,30 @@
+description: Prepares the local environment for building and pushing gems
+parameters:
+  packagecloud_read_token:
+    description: The token to be used when fetching packages from Packagecloud.
+    type: env_var_name
+    default: PACKAGECLOUD_READ_TOKEN
+  gem_repo_host:
+    description: The host to which built packages should be pushed. 
+    type: env_var_name
+    default: AVVO_GEM_REPO_HOST
+  gem_repo_key:
+    description: The :rubygems_api_key used to access the gem repository host
+    type: env_var_name
+    default: AVVO_GEM_REPO_TOKEN
+steps:
+  - setup-generic-environment
+  - run:
+      name: "Configure Packagecloud"
+      command: |-
+        if [ -n "$PACKAGECLOUD_READ_TOKEN" ]; then
+          gem install package_cloud
+          bundle config packagecloud.io $PACKAGECLOUD_READ_TOKEN
+        else
+          echo '$PACKAGECLOUD_READ_TOKEN not set, not installing and configuring package_cloud gem'
+        fi
+  - run:
+      name: "Configure destination gem repo"
+      command: |-
+        printf -- "---\n:rubygems_api_key: Basic $AVVO_GEM_REPO_TOKEN\n" > $HOME/.gem/credentials
+        chmod 0600 $HOME/.gem/credentials

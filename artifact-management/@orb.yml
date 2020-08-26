@@ -1,0 +1,23 @@
+version: 2.1
+
+description: |
+  Automates the many steps needed to build packages (gems, NPM packages, etc.)
+  and push them to whichever repos Avvo is using these days.
+
+examples:
+  basic_commands:
+    description: "Build a gem and push it to one or more gem repos"
+    usage:
+      version: 2.1
+      orbs:
+        artifact-management: avvo/artifact-management@0.0.1
+      jobs:
+        build:
+          docker:
+            - image: circleci/ruby:2.6
+          steps:
+            - checkout
+            - artifact-management/gem-build-and-push
+
+orbs:
+  aws-white-list-circleci-ip: avvo/aws-white-list-circleci-ip@0.0.2

@@ -1,0 +1,13 @@
+description: Perform the actual gem build
+parameters:
+  gem_build_dir:
+    description: The directory in which the gem build and push should run
+    type: string
+    default: .
+steps:
+  - run:
+      name: Build the gem
+      command: |-
+        cd <<parameters.gem_build_dir>>
+        rm -f *.gem
+        gem build $(ls *.gemspec)
