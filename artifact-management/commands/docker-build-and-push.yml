@@ -1,0 +1,35 @@
+description: Builds and pushes a Docker image to one or more Docker repositories
+parameters:
+  docker_build_command:
+    description: The command to be used to build the Docker image
+    type: string
+    default: |-
+        docker build \
+          --build-arg SOURCE_COMMIT=$CIRCLE_SHA \
+          --build-arg PACKAGECLOUD_NPM_READ_TOKEN=$PACKAGECLOUD_NPM_READ_TOKEN \
+          --build-arg PACKAGECLOUD_READ_TOKEN=$PACKAGELOUD_READ_TOKEN \
+          -t avvo/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 \
+          .
+  docker_build_dir:
+    description: The directory in which the gem build and push should run
+    type: string
+    default: .
+  docker_repo_host:
+    description: The private Docker repo to which images should be pushed
+    type: env_var_name
+    default: AVVO_DOCKER_REPO_HOST
+  packagecloud_npm_read_token:
+    description: The token to be used when fetching NPM packages from Packagecloud
+    type: env_var_name
+    default: PACKAGECLOUD_NPM_READ_TOKEN
+  packagecloud_read_token:
+    description: The token to be used when fetching packages from Packagecloud
+    type: env_var_name
+    default: PACKAGECLOUD_READ_TOKEN
+steps:
+  - setup-docker-environment
+  - docker-build:
+      docker_build_dir: <<parameters.docker_build_dir>>
+      docker_build_command: <<parameters.docker_build_command>>
+  - docker-push
+  - teardown-docker-environment

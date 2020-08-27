@@ -1,0 +1,21 @@
+description: Prepares the local environment for building and pushing Docker images
+steps:
+  - setup_remote_docker:
+      docker_layer_caching: true
+  - run:
+      name: Install Docker client
+      command: |-
+        set -x
+        if [ ! -f /usr/bin/docker ]; then
+          VER="19.03.9"
+          curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
+          tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+          mv /tmp/docker/* /usr/bin
+        fi
+  - run:
+      name: Record remote Docker IP address required for proxy access
+      command: |-
+        # capture IP address of docker remote engine, put it in environment variable
+        # $IP that will be accessible to any tasks run after this one.
+        echo "export IP=$(ssh remote-docker wget -q -O - ifconfig.me)" >> $BASH_ENV
+  - setup-generic-environment
