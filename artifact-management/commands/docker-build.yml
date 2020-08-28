@@ -8,12 +8,15 @@ parameters:
           --build-arg SOURCE_COMMIT=$CIRCLE_SHA \
           --build-arg PACKAGECLOUD_NPM_READ_TOKEN=$PACKAGECLOUD_NPM_READ_TOKEN \
           --build-arg PACKAGECLOUD_READ_TOKEN=$PACKAGELOUD_READ_TOKEN \
-          -t avvo/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 \
-          .
+          -t $DOCKER_IMAGE_TAG .
   docker_build_dir:
     description: The directory in which the gem build and push should run
     type: string
     default: .
+  docker_image_name:
+    description: The name that should be used for the Docker image, e.g. avvo/my-image. If not set, a reasonable default is used.
+    type: string
+    default: COMPUTED
   packagecloud_npm_read_token:
     description: The token to be used when fetching NPM packages from Packagecloud
     type: env_var_name
@@ -23,6 +26,8 @@ parameters:
     type: env_var_name
     default: PACKAGECLOUD_READ_TOKEN
 steps:
+  - set-docker-image-tag:
+      docker_image_name: <<parameters.docker_image_name>>
   - run:
       name: Build docker image
       command: |-

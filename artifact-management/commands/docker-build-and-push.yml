@@ -8,12 +8,15 @@ parameters:
           --build-arg SOURCE_COMMIT=$CIRCLE_SHA \
           --build-arg PACKAGECLOUD_NPM_READ_TOKEN=$PACKAGECLOUD_NPM_READ_TOKEN \
           --build-arg PACKAGECLOUD_READ_TOKEN=$PACKAGELOUD_READ_TOKEN \
-          -t avvo/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1 \
-          .
+          -t $DOCKER_IMAGE_TAG .
   docker_build_dir:
     description: The directory in which the gem build and push should run
     type: string
     default: .
+  docker_image_name:
+    description: The name that should be used for the Docker image, e.g. avvo/my-image. If not set, a reasonable default is used.
+    type: string
+    default: COMPUTED
   docker_repo_host:
     description: The private Docker repo to which images should be pushed
     type: env_var_name
@@ -31,5 +34,7 @@ steps:
   - docker-build:
       docker_build_dir: <<parameters.docker_build_dir>>
       docker_build_command: <<parameters.docker_build_command>>
-  - docker-push
+      docker_image_name: <<parameters.docker_image_name>>
+  - docker-push:
+      docker_image_name: <<parameters.docker_image_name>>
   - teardown-docker-environment

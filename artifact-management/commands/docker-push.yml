@@ -4,23 +4,27 @@ parameters:
     description: The private Docker repo to which images should be pushed
     type: env_var_name
     default: AVVO_DOCKER_REPO_HOST
+  docker_image_name:
+    description: The name that should be used for the Docker image, e.g. avvo/my-image. If not set, a reasonable default is used.
+    type: string
+    default: COMPUTED
 steps:
+  - set-docker-image-tag:
+      docker_image_name: <<parameters.docker_image_name>>
   - run:
       name: Publish tagged image
       command: |-
         set -x
 
-        TAG=avvo/$CIRCLE_PROJECT_REPONAME:$CIRCLE_SHA1
-
         # Log in to Dockerhub and push
         if [ -n "$DOCKER_USER" ]; then
           docker login -u $DOCKER_USER -p $DOCKER_PASS
-          docker push $TAG
+          docker push $DOCKER_IMAGE_TAG
         fi
 
         # Push to private Docker repo
         if [ -n "$AVVO_DOCKER_REPO_HOST" ]; then
-          docker tag $TAG $AVVO_DOCKER_REPO_HOST/$TAG
+          docker tag $DOCKER_IMAGE_TAG $AVVO_DOCKER_REPO_HOST/$DOCKER_IMAGE_TAG
           docker login -u $AVVO_DOCKER_REPO_USER -p $AVVO_DOCKER_REPO_PASS $AVVO_DOCKER_REPO_HOST
-          docker push $AVVO_DOCKER_REPO_HOST/$TAG
+          docker push $AVVO_DOCKER_REPO_HOST/$DOCKER_IMAGE_TAG
         fi

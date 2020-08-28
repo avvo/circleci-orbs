@@ -1,0 +1,17 @@
+description: Set DOCKER_IMAGE_TAG variable
+parameters:
+  docker_image_name:
+    description: The name that should be used for the Docker image, e.g. avvo/my-image. If not set, a reasonable default is used.
+    type: string
+    default: COMPUTED
+steps:
+  - run:
+      name: "Set DOCKER_IMAGE_TAG environment variable"
+      command: |-
+        if [ "<<parameters.docker_image_name>>" == "COMPUTED" ]; then
+          DOCKER_IMAGE_NAME=avvo/$(echo $CIRCLE_PROJECT_REPONAME | sed 's/_/-/g;')
+        else
+          DOCKER_IMAGE_NAME="<<parameters.docker_image_name>>"
+        fi
+
+        echo "export DOCKER_IMAGE_TAG=${DOCKER_IMAGE_NAME}:${CIRCLE_SHA1}" >> $BASH_ENV
