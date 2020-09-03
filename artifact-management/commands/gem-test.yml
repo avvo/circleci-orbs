@@ -1,0 +1,44 @@
+description: Perform the actual gem build
+parameters:
+  bundler_version:
+    description: The Bundler version that should be used for "bundle install" and the actual test command
+    type: string
+    default: 1.17.3
+  gem_repo_host:
+    description: The host to which built packages should be pushed. 
+    type: env_var_name
+    default: AVVO_GEM_REPO_HOST
+  gem_repo_key:
+    description: The :rubygems_api_key used to access the gem repository host
+    type: env_var_name
+    default: AVVO_GEM_REPO_TOKEN
+  gem_test_dir:
+    description: The directory in which the gem tesets should run
+    type: string
+    default: .
+  packagecloud_read_token:
+    description: The token to be used when fetching packages from Packagecloud.
+    type: env_var_name
+    default: PACKAGECLOUD_READ_TOKEN
+  test_command:
+    description: The command that should be used to run tests
+    type: string
+    default: bundle exec rake test
+steps:
+  - setup-gem-environment
+  - run:
+      name: Install bundler gem
+      command: |-
+        cd <<parameters.gem_test_dir>>
+        gem install bundler --version=<<parameters.bundler_version>>
+  - run:
+      name: bundle install
+      command: |-
+        cd <<parameters.gem_test_dir>>
+        bundle install
+  - run:
+      name: Run tests
+      command: |-
+        cd <<parameters.gem_test_dir>>
+        <<parameters.test_command>>
+  - teardown-gem-environment
