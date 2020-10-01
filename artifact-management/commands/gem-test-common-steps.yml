@@ -1,0 +1,16 @@
+description: Perform common gem test steps
+parameters:
+  gem_test_dir:
+    description: The directory in which the gem tesets should run
+    type: string
+    default: .
+  bundler_version:
+    description: The Bundler version that should be used for "bundle install" and the actual test command
+    type: string
+    default: 1.17.3
+steps:
+  - run:
+      name: Install bundler gem
+      command: |-
+        cd <<parameters.gem_test_dir>>
+        gem install bundler --version=<<parameters.bundler_version>>
