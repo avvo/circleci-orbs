@@ -1,24 +1,61 @@
-description: Perform simple gem test
+description: Perform gem test with default only or many Ruby versions
 parameters:
+  packagecloud_read_token:
+    description: The token to be used when fetching packages from Packagecloud.
+    type: env_var_name
+    default: PACKAGECLOUD_READ_TOKEN
+  gem_repo_host:
+    description: The host to which built packages should be pushed.
+    type: env_var_name
+    default: AVVO_GEM_REPO_HOST
+  gem_repo_key:
+    description: The :rubygems_api_key used to access the gem repository host
+    type: env_var_name
+    default: AVVO_GEM_REPO_TOKEN
+  bundler_version:
+    description: The Bundler version that should be used for "bundle install" and the actual test command
+    type: string
+    default: 1.17.3
   gem_test_dir:
     description: The directory in which the gem tesets should run
     type: string
     default: .
   test_command:
-    default: bundle exec rake test
-    description: The command that should be used to run tests
+     default: bundle exec rake test
+     description: The command that should be used to run tests
+     type: string
+  ruby_versions:
+    description: The ruby versions to be used to test the gem.
     type: string
+    default: ""
 steps:
   - setup-gem-environment
   - gem-test-common-steps
-  - run:
-      name: bundle install
-      command: |-
-        cd <<parameters.gem_test_dir>>
-        bundle install
-  - run:
-      name: Run tests
-      command: |-
-        cd <<parameters.gem_test_dir>>
-        <<parameters.test_command>>
+  - when:
+      condition: <<parameters.ruby_versions>>
+      steps:
+        - run:
+            name: bundle install
+            command: |-
+              cd <<parameters.gem_test_dir>>
+              rvm <<parameters.ruby_versions>> do bundle install
+        - run:
+            name: Run tests
+            command: |-
+              cd <<parameters.gem_test_dir>>
+              rvm <<parameters.ruby_versions>> do <<parameters.test_command>>
+  - unless:
+     condition: <<parameters.ruby_versions>>
+     steps:
+       - run:
+           name: bundle install
+           command: |-
+             cd <<parameters.gem_test_dir>>
+             bundle install
+       - run:
+           name: Run tests
+           command: |-
+             cd <<parameters.gem_test_dir>>
+             <<parameters.test_command>>
+
   - teardown-gem-environment
