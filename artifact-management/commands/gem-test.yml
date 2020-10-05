@@ -12,10 +12,14 @@ parameters:
     description: The :rubygems_api_key used to access the gem repository host
     type: env_var_name
     default: AVVO_GEM_REPO_TOKEN
-  bundler_version:
+  bundler_1_version:
     description: The Bundler version that should be used for "bundle install" and the actual test command
     type: string
     default: 1.17.3
+  bundler_2_version:
+    description: The Bundler version that should be used for "bundle install" and the actual test command
+    type: string
+    default: 2.1.4
   gem_test_dir:
     description: The directory in which the gem tesets should run
     type: string
@@ -30,10 +34,23 @@ parameters:
     default: ""
 steps:
   - setup-gem-environment
-  - gem-test-common-steps
   - when:
       condition: <<parameters.ruby_versions>>
       steps:
+        - run:
+            name: Install bundler gem
+            command: |-
+              for v in $(echo "<<parameters.ruby_versions>>" | sed "s/,/ /g");
+              do \
+                if [[ "$v" > "2.6.9999" ]];
+                then
+                    echo "Installing bundler version 2 for Ruby version $v"
+                    rvm $v do gem install bundler --version=<<parameters.bundler_2_version>>
+                else
+                    echo "Installing bundler version 1 for Ruby version $v"
+                    rvm $v do gem install bundler --version=<<parameters.bundler_1_version>>
+                fi \
+              done
         - run:
             name: bundle install
             command: |-
@@ -47,6 +64,19 @@ steps:
   - unless:
      condition: <<parameters.ruby_versions>>
      steps:
+       - run:
+           name: Install bundler gem
+           command: |-
+             ACTUAL_RUBY=$(ruby --version);
+             RUBY_VERSION=${ACTUAL_RUBY:5:3};
+             if [[ "$RUBY_VERSION" > "2.6.9999" ]]
+             then
+                 echo "Installing bundler version 2 for Ruby version $RUBY_VERSION"
+                 gem install bundler --version=<<parameters.bundler_2_version>>
+             else
+                 echo "Installing bundler version 1 for Ruby version $RUBY_VERSION"
+                 gem install bundler --version=<<parameters.bundler_1_version>>
+             fi
        - run:
            name: bundle install
            command: |-
