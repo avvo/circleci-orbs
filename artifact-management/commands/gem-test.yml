@@ -1,37 +1,44 @@
-description: Perform gem test with default only or many Ruby versions
+description: Perform gem test with system Ruby, or with one or more Ruby
+  versions (using RVM) if ruby_versions is set. ruby_versions should be a
+  comma-separated string with no spaces, such as "2.2.10,2.3.8,2.5.8".
 parameters:
-  packagecloud_read_token:
-    description: The token to be used when fetching packages from Packagecloud.
-    type: env_var_name
-    default: PACKAGECLOUD_READ_TOKEN
+  bundler_1_version:
+    description: The precise Bundler 1.x version that should be used
+      for "bundle install" and the actual test command.
+    type: string
+    default: 1.17.3
+  bundler_2_version:
+    description: The precise Bundler 2.x version that should be used
+      for "bundle install" and the actual test command.
+    type: string
+    default: 2.1.4
   gem_repo_host:
     description: The host to which built packages should be pushed.
     type: env_var_name
     default: AVVO_GEM_REPO_HOST
   gem_repo_key:
-    description: The :rubygems_api_key used to access the gem repository host
+    description: The :rubygems_api_key used to access the gem repository host.
     type: env_var_name
     default: AVVO_GEM_REPO_TOKEN
-  bundler_1_version:
-    description: The Bundler version that should be used for "bundle install" and the actual test command
-    type: string
-    default: 1.17.3
-  bundler_2_version:
-    description: The Bundler version that should be used for "bundle install" and the actual test command
-    type: string
-    default: 2.1.4
   gem_test_dir:
-    description: The directory in which the gem tests should run
+    description: The directory in which the gem tests should run.
     type: string
     default: .
-  test_command:
-     default: bundle exec rake test
-     description: The command that should be used to run tests
-     type: string
+  packagecloud_read_token:
+    description: The token to be used when fetching packages from Packagecloud.
+    type: env_var_name
+    default: PACKAGECLOUD_READ_TOKEN
   ruby_versions:
-    description: The ruby versions to be used to test the gem.
+    description: The ruby versions to be used to test the gem. If set, RVM is
+      assumed to be installed and the install/test commands will be prefaced
+      with rvm <<ruby_versions> do .... If unset (the default), the system
+      ruby will be called directly.
     type: string
     default: ""
+  test_command:
+    default: bundle exec rake test
+    description: The command that should be used to run tests.
+    type: string
 steps:
   - setup-gem-environment
   - when:
