@@ -5,9 +5,9 @@ parameters:
     type: string
     default: |-
         docker build \
-          --build-arg SOURCE_COMMIT=$CIRCLE_SHA \
+          --build-arg SOURCE_COMMIT=$CIRCLE_SHA1 \
           --build-arg PACKAGECLOUD_NPM_READ_TOKEN=$PACKAGECLOUD_NPM_READ_TOKEN \
-          --build-arg PACKAGECLOUD_READ_TOKEN=$PACKAGELOUD_READ_TOKEN \
+          --build-arg PACKAGECLOUD_READ_TOKEN=$PACKAGECLOUD_READ_TOKEN \
           -t $DOCKER_IMAGE_TAG .
   docker_build_dir:
     description: The directory in which the gem build and push should run
