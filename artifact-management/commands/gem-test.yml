@@ -1,44 +1,101 @@
-description: Perform the actual gem build
+description: Perform gem test with system Ruby, or with one or more Ruby
+  versions (using RVM) if ruby_versions is set. ruby_versions should be a
+  comma-separated string with no spaces, such as "2.2.10,2.3.8,2.5.8".
 parameters:
-  bundler_version:
-    description: The Bundler version that should be used for "bundle install" and the actual test command
+  bundler_1_version:
+    description: The precise Bundler 1.x version that should be used
+      for "bundle install" and the actual test command.
     type: string
     default: 1.17.3
+  bundler_2_version:
+    description: The precise Bundler 2.x version that should be used
+      for "bundle install" and the actual test command.
+    type: string
+    default: 2.1.4
   gem_repo_host:
-    description: The host to which built packages should be pushed. 
+    description: The host to which built packages should be pushed.
     type: env_var_name
     default: AVVO_GEM_REPO_HOST
   gem_repo_key:
-    description: The :rubygems_api_key used to access the gem repository host
+    description: The :rubygems_api_key used to access the gem repository host.
     type: env_var_name
     default: AVVO_GEM_REPO_TOKEN
   gem_test_dir:
-    description: The directory in which the gem tesets should run
+    description: The directory in which the gem tests should run.
     type: string
     default: .
   packagecloud_read_token:
     description: The token to be used when fetching packages from Packagecloud.
     type: env_var_name
     default: PACKAGECLOUD_READ_TOKEN
-  test_command:
-    description: The command that should be used to run tests
+  ruby_versions:
+    description: The ruby versions to be used to test the gem. If set, RVM is
+      assumed to be installed and the install/test commands will be prefaced
+      with rvm <<ruby_versions> do .... If unset (the default), the system
+      ruby will be called directly.
     type: string
+    default: ""
+  test_command:
     default: bundle exec rake test
+    description: The command that should be used to run tests.
+    type: string
 steps:
   - setup-gem-environment
-  - run:
-      name: Install bundler gem
-      command: |-
-        cd <<parameters.gem_test_dir>>
-        gem install bundler --version=<<parameters.bundler_version>>
-  - run:
-      name: bundle install
-      command: |-
-        cd <<parameters.gem_test_dir>>
-        bundle install
-  - run:
-      name: Run tests
-      command: |-
-        cd <<parameters.gem_test_dir>>
-        <<parameters.test_command>>
+  - when:
+      condition: <<parameters.ruby_versions>>
+      steps:
+        - run:
+            name: Install bundler gem
+            command: |-
+              for v in $(echo "<<parameters.ruby_versions>>" | sed "s/,/ /g");
+              do \
+                MAJOR=$(echo $v | cut -f 1 -d'.')
+                MINOR=$(echo $v | cut -f 2 -d'.')
+                if [[ $MAJOR -ge 3 || ( $MAJOR -eq 2 && $MINOR -ge 7 ) ]];
+                then
+                  echo "Installing bundler version 2 for Ruby version $v"
+                  rvm $v do gem install bundler --version=<<parameters.bundler_2_version>>
+                else
+                  echo "Installing bundler version 1 for Ruby version $v"
+                  rvm $v do gem install bundler --version=<<parameters.bundler_1_version>>
+                fi \
+              done
+        - run:
+            name: bundle install
+            command: |-
+              cd <<parameters.gem_test_dir>>
+              rvm <<parameters.ruby_versions>> do bundle install
+        - run:
+            name: Run tests
+            command: |-
+              cd <<parameters.gem_test_dir>>
+              rvm <<parameters.ruby_versions>> do <<parameters.test_command>>
+  - unless:
+     condition: <<parameters.ruby_versions>>
+     steps:
+       - run:
+           name: Install bundler gem
+           command: |-
+             RUBY_VERSION=$(ruby --version | cut -f 2 -d' ')
+             MAJOR=$(echo $RUBY_VERSION | cut -f 1 -d'.')
+             MINOR=$(echo $RUBY_VERSION | cut -f 2 -d'.')
+             if [[ $MAJOR -ge 3 || ( $MAJOR -eq 2 && $MINOR -ge 7 ) ]];
+             then
+               echo "Installing bundler version 2 for Ruby version $RUBY_VERSION"
+               gem install bundler --version=<<parameters.bundler_2_version>>
+             else
+               echo "Installing bundler version 1 for Ruby version $RUBY_VERSION"
+               gem install bundler --version=<<parameters.bundler_1_version>>
+             fi
+       - run:
+           name: bundle install
+           command: |-
+             cd <<parameters.gem_test_dir>>
+             bundle install
+       - run:
+           name: Run tests
+           command: |-
+             cd <<parameters.gem_test_dir>>
+             <<parameters.test_command>>
+
   - teardown-gem-environment
