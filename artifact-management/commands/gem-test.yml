@@ -4,14 +4,18 @@ description: Perform gem test with system Ruby, or with one or more Ruby
 parameters:
   bundler_1_version:
     description: The precise Bundler 1.x version that should be used
-      for "bundle install" and the actual test command.
+      for the bundle_install_command the actual test command.
     type: string
     default: 1.17.3
   bundler_2_version:
     description: The precise Bundler 2.x version that should be used
-      for "bundle install" and the actual test command.
+      for the bundle_install_command the actual test command.
     type: string
     default: 2.1.4
+  bundle_install_command:
+    description: The command that will be used to install gems.
+    type: string
+    default: bundle install --development
   gem_repo_host:
     description: The host to which built packages should be pushed.
     type: env_var_name
@@ -61,10 +65,10 @@ steps:
                 fi \
               done
         - run:
-            name: bundle install
+            name: Install gems with Bundler
             command: |-
               cd <<parameters.gem_test_dir>>
-              rvm <<parameters.ruby_versions>> do bundle install
+              rvm <<parameters.ruby_versions>> do <<parameters.bundle_install_command>>
         - run:
             name: Run tests
             command: |-
@@ -88,10 +92,10 @@ steps:
                gem install bundler --version=<<parameters.bundler_1_version>>
              fi
        - run:
-           name: bundle install
+           name: Install gems with Bundler
            command: |-
              cd <<parameters.gem_test_dir>>
-             bundle install
+             <<parameters.bundle_install_command>>
        - run:
            name: Run tests
            command: |-
