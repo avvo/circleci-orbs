@@ -12,6 +12,10 @@ parameters:
       for "bundle install" and the actual test command.
     type: string
     default: 2.1.4
+  bundler_install_command:
+    description: The command that should be used to run bundle installtions.
+    type: string
+    default: bundle install
   gem_repo_host:
     description: The host to which built packages should be pushed.
     type: env_var_name
@@ -24,6 +28,35 @@ parameters:
     description: The directory in which the gem tests should run.
     type: string
     default: .
+  post_gem_test_conditions:
+    description: Steps that must be true after all test steps. For example
+      if you need to create test reports.
+    type: steps
+    default: []
+  post_test_command:
+    description: Command that will be executed after test_command. For
+      example if you need to remove any residual file created by the test
+      command. This command is executed for each Ruby version.
+    type: string
+    default: echo "No post test process command."
+  pre_bundler_install_command:
+    description: Command that will be executed before bundler_install_command.
+      For example if you need to remove Gemfile.lock before "bundle install" is
+      executed. This command is executed for each Ruby version.
+    type: string
+    default: echo "No pre bundler install command."
+  pre_gem_test_conditions:
+    description: Steps that must be true before all test steps. For example
+      if you need to install gems. This steps are executed once for all Ruby
+      versions.
+    type: steps
+    default: []
+  pre_test_command:
+    description: Command that will be executed just before test_command. For
+      example if you need to prepare test DB after "bundle install" and
+      before "rake test"
+    type: string
+    default: echo "No pre test command."
   packagecloud_read_token:
     description: The token to be used when fetching packages from Packagecloud.
     type: env_var_name
@@ -41,61 +74,16 @@ parameters:
     type: string
 steps:
   - setup-gem-environment
-  - when:
-      condition: <<parameters.ruby_versions>>
-      steps:
-        - run:
-            name: Install bundler gem
-            command: |-
-              for v in $(echo "<<parameters.ruby_versions>>" | sed "s/,/ /g");
-              do \
-                MAJOR=$(echo $v | cut -f 1 -d'.')
-                MINOR=$(echo $v | cut -f 2 -d'.')
-                if [[ $MAJOR -ge 3 || ( $MAJOR -eq 2 && $MINOR -ge 7 ) ]];
-                then
-                  echo "Installing bundler version 2 for Ruby version $v"
-                  rvm $v do gem install bundler --version=<<parameters.bundler_2_version>>
-                else
-                  echo "Installing bundler version 1 for Ruby version $v"
-                  rvm $v do gem install bundler --version=<<parameters.bundler_1_version>>
-                fi \
-              done
-        - run:
-            name: bundle install
-            command: |-
-              cd <<parameters.gem_test_dir>>
-              rvm <<parameters.ruby_versions>> do bundle install
-        - run:
-            name: Run tests
-            command: |-
-              cd <<parameters.gem_test_dir>>
-              rvm <<parameters.ruby_versions>> do <<parameters.test_command>>
-  - unless:
-     condition: <<parameters.ruby_versions>>
-     steps:
-       - run:
-           name: Install bundler gem
-           command: |-
-             RUBY_VERSION=$(ruby --version | cut -f 2 -d' ')
-             MAJOR=$(echo $RUBY_VERSION | cut -f 1 -d'.')
-             MINOR=$(echo $RUBY_VERSION | cut -f 2 -d'.')
-             if [[ $MAJOR -ge 3 || ( $MAJOR -eq 2 && $MINOR -ge 7 ) ]];
-             then
-               echo "Installing bundler version 2 for Ruby version $RUBY_VERSION"
-               gem install bundler --version=<<parameters.bundler_2_version>>
-             else
-               echo "Installing bundler version 1 for Ruby version $RUBY_VERSION"
-               gem install bundler --version=<<parameters.bundler_1_version>>
-             fi
-       - run:
-           name: bundle install
-           command: |-
-             cd <<parameters.gem_test_dir>>
-             bundle install
-       - run:
-           name: Run tests
-           command: |-
-             cd <<parameters.gem_test_dir>>
-             <<parameters.test_command>>
-
+  - gem-test-core:
+      bundler_1_version: <<parameters.bundler_1_version>>
+      bundler_2_version: <<parameters.bundler_2_version>>
+      bundler_install_command: <<parameters.bundler_install_command>>
+      gem_test_dir: <<parameters.gem_test_dir>>
+      post_gem_test_conditions: <<parameters.post_gem_test_conditions>>
+      post_test_command: <<parameters.post_test_command>>
+      pre_bundler_install_command: <<parameters.pre_bundler_install_command>>
+      pre_gem_test_conditions: <<parameters.pre_gem_test_conditions>>
+      pre_test_command: <<parameters.pre_test_command>>
+      ruby_versions: <<parameters.ruby_versions>>
+      test_command: <<parameters.test_command>>
   - teardown-gem-environment
