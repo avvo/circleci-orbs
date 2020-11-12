@@ -121,6 +121,7 @@ steps:
        - run:
            name: Test process
            command: |-
+             cd <<parameters.gem_test_dir>>
              <<parameters.pre_bundler_install_command>>
              <<parameters.bundler_install_command>>
              <<parameters.pre_test_command>>
