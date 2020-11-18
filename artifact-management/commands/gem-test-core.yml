@@ -68,6 +68,7 @@ steps:
         - run:
             name: Install bundler gem
             command: |-
+              set -e
               for v in $(echo "<<parameters.ruby_versions>>" | sed "s/,/ /g");
               do \
                 MAJOR=$(echo $v | cut -f 1 -d'.')
@@ -85,6 +86,7 @@ steps:
         - run:
             name: Test process
             command: |-
+              set -e
               cd <<parameters.gem_test_dir>>
               for v in $(echo "<<parameters.ruby_versions>>" | sed "s/,/ /g");
               do \
@@ -106,6 +108,7 @@ steps:
        - run:
            name: Install bundler gem
            command: |-
+             set -e
              RUBY_VERSION=$(ruby --version | cut -f 2 -d' ')
              MAJOR=$(echo $RUBY_VERSION | cut -f 1 -d'.')
              MINOR=$(echo $RUBY_VERSION | cut -f 2 -d'.')
@@ -121,6 +124,7 @@ steps:
        - run:
            name: Test process
            command: |-
+             set -e
              cd <<parameters.gem_test_dir>>
              <<parameters.pre_bundler_install_command>>
              <<parameters.bundler_install_command>>
