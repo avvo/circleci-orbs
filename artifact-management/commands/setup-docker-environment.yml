@@ -1,4 +1,17 @@
 description: Prepares the local environment for building and pushing Docker images
+parameters:
+  docker_password:
+    description: Password to log in to avvo organization at docker.io
+    type: string
+    default: $DOCKERHUB_PASS
+  docker_user:
+    description: User to log in to avvo organization at docker.io
+    type: string
+    default: $DOCKERHUB_USER
+  dockerhub_login:
+    description: When equals to true the setup will log in at docker.io
+    type: boolean
+    default: false
 steps:
   - setup_remote_docker:
       docker_layer_caching: true
@@ -18,4 +31,11 @@ steps:
         # capture IP address of docker remote engine, put it in environment variable
         # $IP that will be accessible to any tasks run after this one.
         echo "export IP=$(ssh remote-docker wget -q -O - ifconfig.me)" >> $BASH_ENV
+  - when:
+      condition: <<parameters.dockerhub_login>>
+      steps:
+        - run:
+            name: Docker login
+            command: |-
+              docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASS
   - setup-generic-environment
