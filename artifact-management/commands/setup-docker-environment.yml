@@ -18,4 +18,11 @@ steps:
         # capture IP address of docker remote engine, put it in environment variable
         # $IP that will be accessible to any tasks run after this one.
         echo "export IP=$(ssh remote-docker wget -q -O - ifconfig.me)" >> $BASH_ENV
+  - run:
+      name: Login to Dockerhub
+      command: |-
+        # Log in to Dockerhub
+        if [ -n "$DOCKER_USER" ]; then
+          docker login -u $DOCKER_USER -p $DOCKER_PASS
+        fi
   - setup-generic-environment
