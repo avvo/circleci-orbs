@@ -1,0 +1,3 @@
+description: Cleans up after testing, building, and pushing
+steps:
+  - teardown-generic-environment

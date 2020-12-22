@@ -15,11 +15,11 @@ parameters:
     description: The command that should be used to run bundle installtions.
     type: string
     default: bundle install
-  gem_test_dir:
-    description: The directory in which the gem tests should run.
+  test_dir:
+    description: The directory in which the tests should run.
     type: string
     default: .
-  post_gem_test_conditions:
+  post_test_conditions:
     description: Steps that must be true after all test steps. For example
       if you need to create test reports.
     type: steps
@@ -36,7 +36,7 @@ parameters:
       executed. This command is executed for each Ruby version.
     type: string
     default: echo "No pre bundler install command."
-  pre_gem_test_conditions:
+  pre_test_conditions:
     description: Steps that must be true before all test steps. For example
       if you need to install gems. This steps are executed once for all Ruby
       versions.
@@ -49,7 +49,7 @@ parameters:
     type: string
     default: echo "No pre test command."
   ruby_versions:
-    description: The ruby versions to be used to test the gem. If set, RVM is
+    description: The ruby versions to be used to run the test. If set, RVM is
       assumed to be installed and the install/test commands will be prefaced
       with rvm <<ruby_versions> do .... If unset (the default), the system
       ruby will be called directly.
@@ -63,7 +63,7 @@ steps:
   - when:
       condition: <<parameters.ruby_versions>>
       steps:
-        - steps: << parameters.pre_gem_test_conditions >>
+        - steps: << parameters.pre_test_conditions >>
 
         - run:
             name: Install bundler gem
@@ -87,7 +87,7 @@ steps:
             name: Test process
             command: |-
               set -e
-              cd <<parameters.gem_test_dir>>
+              cd <<parameters.test_dir>>
               for v in $(echo "<<parameters.ruby_versions>>" | sed "s/,/ /g");
               do \
                  echo "Test process for Ruby $v"
@@ -98,12 +98,12 @@ steps:
                  rvm $v do <<parameters.post_test_command>>
               done
 
-        - steps: << parameters.post_gem_test_conditions >>
+        - steps: << parameters.post_test_conditions >>
 
   - unless:
      condition: <<parameters.ruby_versions>>
      steps:
-       - steps: << parameters.pre_gem_test_conditions >>
+       - steps: << parameters.pre_test_conditions >>
 
        - run:
            name: Install bundler gem
@@ -125,11 +125,11 @@ steps:
            name: Test process
            command: |-
              set -e
-             cd <<parameters.gem_test_dir>>
+             cd <<parameters.test_dir>>
              <<parameters.pre_bundler_install_command>>
              <<parameters.bundler_install_command>>
              <<parameters.pre_test_command>>
              <<parameters.test_command>>
              <<parameters.post_test_command>>
 
-       - steps: << parameters.post_gem_test_conditions >>
+       - steps: << parameters.post_test_conditions >>

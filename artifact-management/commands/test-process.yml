@@ -1,4 +1,4 @@
-description: Perform gem test with system Ruby, or with one or more Ruby
+description: Perform test with system Ruby, or with one or more Ruby
   versions (using RVM) if ruby_versions is set. ruby_versions should be a
   comma-separated string with no spaces, such as "2.2.10,2.3.8,2.5.8".
 parameters:
@@ -24,11 +24,11 @@ parameters:
     description: The :rubygems_api_key used to access the gem repository host.
     type: env_var_name
     default: AVVO_GEM_REPO_TOKEN
-  gem_test_dir:
-    description: The directory in which the gem tests should run.
+  test_dir:
+    description: The directory in which the tests should run.
     type: string
     default: .
-  post_gem_test_conditions:
+  post_test_conditions:
     description: Steps that must be true after all test steps. For example
       if you need to create test reports.
     type: steps
@@ -45,7 +45,7 @@ parameters:
       executed. This command is executed for each Ruby version.
     type: string
     default: echo "No pre bundler install command."
-  pre_gem_test_conditions:
+  pre_test_conditions:
     description: Steps that must be true before all test steps. For example
       if you need to install gems. This steps are executed once for all Ruby
       versions.
@@ -62,7 +62,7 @@ parameters:
     type: env_var_name
     default: PACKAGECLOUD_READ_TOKEN
   ruby_versions:
-    description: The ruby versions to be used to test the gem. If set, RVM is
+    description: The ruby versions to be used to run the test. If set, RVM is
       assumed to be installed and the install/test commands will be prefaced
       with rvm <<ruby_versions> do .... If unset (the default), the system
       ruby will be called directly.
@@ -73,17 +73,17 @@ parameters:
     description: The command that should be used to run tests.
     type: string
 steps:
-  - setup-gem-environment
-  - gem-test-core:
+  - setup-ruby-environment
+  - test-core-process:
       bundler_1_version: <<parameters.bundler_1_version>>
       bundler_2_version: <<parameters.bundler_2_version>>
       bundler_install_command: <<parameters.bundler_install_command>>
-      gem_test_dir: <<parameters.gem_test_dir>>
-      post_gem_test_conditions: <<parameters.post_gem_test_conditions>>
+      test_dir: <<parameters.test_dir>>
+      post_test_conditions: <<parameters.post_test_conditions>>
       post_test_command: <<parameters.post_test_command>>
       pre_bundler_install_command: <<parameters.pre_bundler_install_command>>
-      pre_gem_test_conditions: <<parameters.pre_gem_test_conditions>>
+      pre_test_conditions: <<parameters.pre_test_conditions>>
       pre_test_command: <<parameters.pre_test_command>>
       ruby_versions: <<parameters.ruby_versions>>
       test_command: <<parameters.test_command>>
-  - teardown-gem-environment
+  - teardown-ruby-environment
