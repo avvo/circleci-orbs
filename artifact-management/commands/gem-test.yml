@@ -73,7 +73,7 @@ parameters:
     description: The command that should be used to run tests.
     type: string
 steps:
-  - setup-gem-environment
+  - setup-ruby-environment
   - gem-test-core:
       bundler_1_version: <<parameters.bundler_1_version>>
       bundler_2_version: <<parameters.bundler_2_version>>
@@ -86,4 +86,4 @@ steps:
       pre_test_command: <<parameters.pre_test_command>>
       ruby_versions: <<parameters.ruby_versions>>
       test_command: <<parameters.test_command>>
-  - teardown-gem-environment
+  - teardown-ruby-environment

@@ -1,4 +1,4 @@
-description: Prepares the local environment for building and pushing gems
+description: Prepares the local environment for testing, building and pushing.
 parameters:
   packagecloud_read_token:
     description: The token to be used when fetching packages from Packagecloud.

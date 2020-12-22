@@ -21,9 +21,9 @@ parameters:
     type: env_var_name
     default: AVVO_GEM_REPO_TOKEN
 steps:
-  - setup-gem-environment
+  - setup-ruby-environment
   - gem-build:
       gem_build_dir: <<parameters.gem_build_dir>>
   - gem-push:
       gem_build_dir: <<parameters.gem_build_dir>>
-  - teardown-gem-environment
+  - teardown-ruby-environment
