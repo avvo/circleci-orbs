@@ -13,7 +13,7 @@ description: |
   * Support for specifying $IP environment variable. (Useful when the
     IP you are registering is a CircleCI remote docker engine, not
     the CircleCI container on which the orb is invoked.)
-  * Uses ifconfig.me rather than checkip.amazon.com to determine default
+  * Uses api.ipify.org rather than checkip.amazon.com to determine default
     value of IP address. Just in case the CircleCI environment runs
     somewhere other than Amazon.
 

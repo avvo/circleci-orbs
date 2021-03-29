@@ -26,7 +26,7 @@ steps:
       name: AWS whitelist add CircleCI IP
       command: |-
           # Get the public ip address
-          LATEST_IP=$(wget -qO- ifconfig.me)
+          LATEST_IP=$(wget -qO- api.ipify.org)
           MY_IP="${IP-$LATEST_IP}"
           if [[ "${MY_IP}" == "" ]]; then
             echo "Could not find your public IP"

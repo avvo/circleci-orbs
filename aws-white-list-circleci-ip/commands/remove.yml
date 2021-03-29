@@ -27,7 +27,7 @@ steps:
       when: always
       command: |-
           # Get the public ip address
-          LATEST_IP=$(wget -qO- ifconfig.me)
+          LATEST_IP=$(wget -qO- api.ipify.org)
           MY_IP=${IP-$LATEST_IP}
           [[ -n "$MY_IP" ]] || (echo "Could not find your public IP" && exit 1);
 

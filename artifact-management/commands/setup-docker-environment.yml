@@ -17,7 +17,7 @@ steps:
       command: |-
         # capture IP address of docker remote engine, put it in environment variable
         # $IP that will be accessible to any tasks run after this one.
-        echo "export IP=$(ssh remote-docker wget -q -O - ifconfig.me)" >> $BASH_ENV
+        echo "export IP=$(ssh remote-docker wget -qO- api.ipify.org)" >> $BASH_ENV
   - run:
       name: Login to Dockerhub
       command: |-
