@@ -23,11 +23,11 @@ examples:
     usage:
       version: 2.1
       orbs:
-        aws-white-list-circleci-ip: avvo/aws-white-list-circleci-ip@0.0.2
+        aws-white-list-circleci-ip: avvo/aws-white-list-circleci-ip@dev:0.0.3
       jobs:
         build:
           docker:
-            - image: circleci/python:2.7
+            - image: circleci/python:3.6
           steps:
             - checkout
             - aws-white-list-circleci-ip/add
